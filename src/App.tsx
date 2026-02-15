@@ -30,7 +30,7 @@ export type FilterType = Filter.All | Filter.Active | Filter.Completed;
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
+  const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<FilterType>(Filter.All);
   const [newTitle, setNewTitle] = useState('');
@@ -38,6 +38,14 @@ export const App: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const startLoading = (id: number) => {
+    setLoadingTodoIds(prev => [...prev, id]);
+  };
+
+  const stopLoading = (id: number) => {
+    setLoadingTodoIds(prev => prev.filter(todoId => todoId !== id));
+  };
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +95,7 @@ export const App: React.FC = () => {
   }, [isAdding, tempTodo]);
 
   const toggleTodo = async (todo: Todo) => {
-    setLoadingTodoId(todo.id);
+    startLoading(todo.id);
     setError('');
 
     try {
@@ -102,7 +110,7 @@ export const App: React.FC = () => {
     } catch {
       setError(ErrorText.UpdateFailed);
     } finally {
-      setLoadingTodoId(null);
+      stopLoading(todo.id);
     }
   };
 
@@ -113,7 +121,7 @@ export const App: React.FC = () => {
 
     await Promise.allSettled(
       completed.map(async todo => {
-        setLoadingTodoId(todo.id);
+        startLoading(todo.id);
 
         try {
           await todoService.deleteTodo(todo.id);
@@ -121,7 +129,7 @@ export const App: React.FC = () => {
         } catch {
           setError(ErrorText.DeleteFailed);
         } finally {
-          setLoadingTodoId(null);
+          stopLoading(todo.id);
         }
       }),
     );
@@ -129,7 +137,7 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteTodo = async (todoId: number) => {
-    setLoadingTodoId(todoId);
+    startLoading(todoId);
     setError('');
     try {
       await todoService.deleteTodo(todoId);
@@ -138,7 +146,7 @@ export const App: React.FC = () => {
     } catch {
       setError(ErrorText.DeleteFailed);
     } finally {
-      setLoadingTodoId(null);
+      stopLoading(todoId);
     }
   };
 
@@ -201,7 +209,7 @@ export const App: React.FC = () => {
         <TodoList
           todos={filterTodos}
           tempTodo={tempTodo}
-          loadingTodoId={loadingTodoId}
+          loadingTodoIds={loadingTodoIds}
           onToggledTodo={toggleTodo}
           onDelete={handleDeleteTodo}
         />

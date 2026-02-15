@@ -4,7 +4,7 @@ import { Todo } from '../../types/Todo';
 type Props = {
   todos: Todo[];
   tempTodo: Todo | null;
-  loadingTodoId: number | null;
+  loadingTodoIds: number[];
   onToggledTodo: (todo: Todo) => void;
   onDelete: (id: number) => void;
 };
@@ -12,7 +12,7 @@ type Props = {
 export const TodoList: React.FC<Props> = ({
   todos,
   tempTodo,
-  loadingTodoId,
+  loadingTodoIds,
   onToggledTodo,
   onDelete,
 }) => {
@@ -52,7 +52,7 @@ export const TodoList: React.FC<Props> = ({
               data-cy="TodoLoader"
               className={classNames('modal overlay', {
                 'is-active':
-                  loadingTodoId === todo.id || tempTodo?.id === todo.id,
+                  loadingTodoIds.includes(todo.id) || tempTodo?.id === todo.id,
               })}
             >
               <div className="modal-background has-background-white-ter" />
